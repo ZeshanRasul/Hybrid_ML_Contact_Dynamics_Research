@@ -13,6 +13,7 @@ def validate_restitution(j, data, circle: Circle, plane: Plane, dt: float, run_c
     impact_steps = list()
     impact_indices = []
     e_estimates = []
+    x_input = []
     v_eps = 0.5
     pos_eps = 1e-3
     for i in range (len(vy) - 1):
@@ -20,6 +21,7 @@ def validate_restitution(j, data, circle: Circle, plane: Plane, dt: float, run_c
             e_est_i = vy[i+1] / (-vy[i])
             e_estimates.append(e_est_i)
             impact_indices.append(i)
+            x_input = [circle.get_restitution(), vy[i], vy[i+1], dt, circle.get_mass(), circle.get_radius()]
 
 
     impact_indices = np.asarray(impact_indices, dtype=np.int64)
@@ -45,20 +47,30 @@ def validate_restitution(j, data, circle: Circle, plane: Plane, dt: float, run_c
 
     h_ratios = h_peaks_valid[2:] / h_peaks_valid[1:-1] if len(h_peaks_valid) >= 2 else np.array([])
 
+    h_ratios_mean = 0
+    h_ratios_min = 0
+    h_ratios_max = 0
+
+    if (len(h_ratios > 0)):
+        h_ratios_mean = h_ratios.mean()
+        h_ratios_min = h_ratios.min()
+        h_ratios_max = h_ratios.max()
+
     data = {
         'Delta Time': dt,
-        'e estimates mean: ': e_estimates.mean(),
+        'e estimates mean': e_estimates.mean(),
         'e actual mean': e.mean(),
-        'e estimates std: ': e_estimates.std(),
+        'e estimates std': e_estimates.std(),
         'e actual std': e.std(),
-        'e estimates min: ': e_estimates.min(),
+        'e estimates min': e_estimates.min(),
         'e actual min': e.min(),
-        'e estimates max: ': e_estimates.max(),
+        'e estimates max': e_estimates.max(),
         'e actual max': e.max(),
-        'Impact count: ': len(impact_indices),
-        'Height ratios mean: ': h_ratios.mean(),
-        'Height ratios min: ': h_ratios.min(),
-        'Height ratios max: ': h_ratios.max()
+        'Impact count': len(impact_indices),
+        'Height ratios mean': h_ratios_mean,
+        'Height ratios min': h_ratios_min,
+        'Height ratios max': h_ratios_max,
+        'x input': x_input
         }
     
     with open(f"hybrid_ml_contact_dynamics/experiments/freefall/runs/{j}/{date}/results/validation.json", 'w', encoding='utf-8') as f:
