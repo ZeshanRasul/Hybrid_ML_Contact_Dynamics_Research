@@ -21,8 +21,8 @@ def validate_restitution(j, data, circle: Circle, plane: Plane, dt: float, run_c
             e_est_i = vy[i+1] / (-vy[i])
             e_estimates.append(e_est_i)
             impact_indices.append(i)
-            x_input = [circle.get_restitution(), vy[i], vy[i+1], dt, circle.get_mass(), circle.get_radius()]
-
+            x = [circle.get_restitution(), vy[i], vy[i+1], dt, circle.get_mass(), circle.get_radius()]
+            x_input.append(x)
 
     impact_indices = np.asarray(impact_indices, dtype=np.int64)
     e_estimates = np.asarray(e_estimates, dtype=np.float64)
