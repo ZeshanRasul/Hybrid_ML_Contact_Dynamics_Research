@@ -1,5 +1,6 @@
 import datetime
 import json
+import numpy as np
 
 from hybrid_ml_contact_dynamics.physics.types import vec2
 from hybrid_ml_contact_dynamics.physics.rigidbody import RigidBody2D
@@ -16,7 +17,6 @@ def main():
     config = list()
     with open("hybrid_ml_contact_dynamics/experiments/freefall/config.json") as f:
         config = json.load(f)
-    traj = Trajectory_Buffer()
     collision_check = CollisionCheck()
     gravity_force = vec2(config['Force X'], config['Force Y'])
     gravity = gravity_force
@@ -33,10 +33,20 @@ def main():
     dt = config['Delta Time']
     run_count = config['Runs']
     runtimestamp = datetime.datetime.now().strftime("%d-%m-%Y,%H:%M:%S")
+
+
     for i in range(run_count):
+        traj = Trajectory_Buffer()
+        e = np.random.random()
+        # e = max(0.1, min(e, 0.9))
+        print(e)
+        circle.set_restitution(e)
+        should_update = True
+        circle.set_position(start_pos)
+        circle.set_velocity(vec2(0.0, 0.0))
+
         while(should_update):
             total_time = total_time + dt
-
             circle.add_force(circle.get_mass() * gravity)
             world.step(dt)
 
@@ -46,11 +56,12 @@ def main():
 
             if (total_time >= config["End Time"]):
                 print("Closing")
-                break
+                total_time = 0
+                should_update = False
 
-            traj.record(total_time, circle.get_position(), circle.get_velocity())
+            traj.record(total_time, circle.get_position(), circle.get_velocity(), circle.get_restitution())
+        traj.finalise()
+        traj.save(i, runtimestamp)
+        validate_restitution(i, traj.load(i, runtimestamp), circle, plane, dt, run_count, runtimestamp)
+        print(f'RUN_DIR={i}/{runtimestamp}')
 
-    traj.finalise()
-    traj.save(runtimestamp)
-    validate_restitution(traj.load(runtimestamp), circle, plane, dt, runtimestamp)
-    print(f'RUN_DIR={runtimestamp}')

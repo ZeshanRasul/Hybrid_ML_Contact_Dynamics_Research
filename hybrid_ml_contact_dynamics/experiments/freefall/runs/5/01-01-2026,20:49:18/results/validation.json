@@ -1,0 +1,15 @@
+{
+    "Delta Time": 0.01666666666666,
+    "e estimates mean: ": 0.9174509138875265,
+    "e actual mean": 0.9170631896089888,
+    "e estimates std: ": 3.756586047254979e-05,
+    "e actual std": 3.3306690738754696e-16,
+    "e estimates min: ": 0.9174019643373268,
+    "e actual min": 0.9170631896089891,
+    "e estimates max: ": 0.9175027152237378,
+    "e actual max": 0.9170631896089891,
+    "Impact count: ": 4,
+    "Height ratios mean: ": 0.8330965609136608,
+    "Height ratios min: ": 0.8181829261976308,
+    "Height ratios max: ": 0.8406839915228516
+}
