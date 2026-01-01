@@ -1,4 +1,4 @@
-from physics.rigidbody import RigidBody2D
+from hybrid_ml_contact_dynamics.physics.rigidbody import RigidBody2D
 
 class Simulation:   
     bodies: list[RigidBody2D]

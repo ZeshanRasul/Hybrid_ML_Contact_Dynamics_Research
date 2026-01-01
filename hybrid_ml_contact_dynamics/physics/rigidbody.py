@@ -1,4 +1,4 @@
-from physics.types import Vec2, vec2
+from hybrid_ml_contact_dynamics.physics.types import Vec2, vec2
 
 class RigidBody2D:
     position: Vec2
