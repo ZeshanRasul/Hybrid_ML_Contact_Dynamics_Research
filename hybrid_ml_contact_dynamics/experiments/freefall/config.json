@@ -1,0 +1,9 @@
+{
+  "Runs": 5,
+  "Delta Time": 0.00833333333,
+  "End Time": 300,
+  "Start Pos X": 100,
+  "Start Pos Y": 10000,
+  "Force X": 0,
+  "Force Y": -9.81
+}

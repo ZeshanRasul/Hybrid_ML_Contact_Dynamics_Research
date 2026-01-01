@@ -1,4 +1,5 @@
 import numpy as np
+from pathlib import Path
 from hybrid_ml_contact_dynamics.physics.types import vec2
 
 class Trajectory_Buffer():
@@ -19,8 +20,9 @@ class Trajectory_Buffer():
     def finalise(self):
         return np.stack(self.buffer)
     
-    def save(self):
-        np.savez_compressed("hybrid_ml_contact_dynamics/experiments/freefall/results/traj.npz", time=self.time, position=self.position, velocity=self.velocity)
+    def save(self, date):
+        Path(f"hybrid_ml_contact_dynamics/experiments/freefall/runs/{date}/results/").mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(f"hybrid_ml_contact_dynamics/experiments/freefall/runs/{date}/results/traj.npz", time=self.time, position=self.position, velocity=self.velocity)
 
-    def load(self):
-        return np.load("hybrid_ml_contact_dynamics/experiments/freefall/results/traj.npz")
+    def load(self, date):
+        return np.load(f"hybrid_ml_contact_dynamics/experiments/freefall/runs/{date}/results/traj.npz")
