@@ -3,9 +3,9 @@ import torch
 class RestitutionPredictor(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        self.linear1 = torch.nn.Linear(2, 6717)
+        self.linear1 = torch.nn.Linear(0, 1903)
         self.activation = torch.nn.ReLU()
-        self.linear2 = torch.nn.Linear(6717, 16)
+        self.linear2 = torch.nn.Linear(1903, 16)
         self.activation2 = torch.nn.ReLU()
         self.linear3 = torch.nn.Linear(16, 1)
         self.sigmoid = torch.nn.Sigmoid()

@@ -10,9 +10,9 @@ def main():
     data_builder.save()
     data = data_builder.load()
 
-    X1 = np.zeros((6040))
-    X2 = np.zeros((6040))
-    y = np.zeros((6040))
+    X1 = np.zeros((1903, 0))
+ #   X2 = np.zeros((1903, 0))
+ #   y = np.zeros((1903, 0))
 
     y_windows = list()
     h_windows = list()
@@ -23,16 +23,24 @@ def main():
 
     y = data['e_true']
 
-    X1 = y_windows
+    X1 = np.copy(y_windows)
     X2 = h_windows
 
+    print(len(X1))
     X1 = np.asarray(X1, dtype=np.float32)
     X1 = torch.from_numpy(X1)
     X2 = np.asarray(X2, dtype=np.float32)
     X2 = torch.from_numpy(X2)
 
+  #  X1 = X1.reshape(1903,)
+    X = np.zeros((2, 1903))
+    X = np.column_stack((X1, X2))
+    X = torch.from_numpy(X)
     loss_fn = torch.nn.MSELoss()
-
+    
+    y = np.asarray(y, dtype=np.float32)
+    y = torch.from_numpy(y)
+   # print(len(X1))
     # print(X1.min())
     # print(X1.max())
     # print(X1.mean())
@@ -46,7 +54,7 @@ def main():
     for i in range(epochs):
         optimizer.zero_grad()
 
-        predictions = model(X1)
+        predictions = model(X)
         
         loss = loss_fn(predictions, y)
         loss.backward()
@@ -56,6 +64,6 @@ def main():
         running_loss += loss.item()
 
         if i % 10 == 0:
-            last_loss = running_loss / 50
+            last_loss = running_loss / 10
             print(last_loss)
             running_loss = 0
