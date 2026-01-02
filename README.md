@@ -36,10 +36,16 @@ $\frac{h_k+1}{h_k} = e^2$
 
 ### Visual Plots
 
+Figures 1-3 illustrate the ground truth dynamics of the system, including phase-space trajectory, position-time evolution and velocity-time evolution. Together, these plots confirm correct physical behaviour and highlight the discontinuous, noise-sensitive nature of impact event that motivate the use of temporal windowing and learned estimators as described throughout this document.
+
+![Position-Time evolution plot](/hybrid_ml_contact_dynamics//docs/images/timevsposition.png)
+
 Figure 1: Position vs Time
 
+![Velocity-Time evolution plot](/hybrid_ml_contact_dynamics//docs/images/timevsvelocity.png)
 Figure 2: Velocity vs Time
 
+![Position-Velocity evolution plot](/hybrid_ml_contact_dynamics//docs/images/positionvsvelocity.png)
 Figure 3: Phase Plot (Velocity vs Position)
 
 ## Data Generation and Trajectory Logging
