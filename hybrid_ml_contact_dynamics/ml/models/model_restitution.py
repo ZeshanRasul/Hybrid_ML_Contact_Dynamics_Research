@@ -8,7 +8,6 @@ class RestitutionPredictor(torch.nn.Module):
         self.linear2 = torch.nn.Linear(32, 16)
         self.activation2 = torch.nn.ReLU()
         self.linear3 = torch.nn.Linear(16, 1)
-        self.sigmoid = torch.nn.Sigmoid()
 
     def forward(self, x: torch.tensor):
         x = self.linear1(x)
@@ -16,7 +15,6 @@ class RestitutionPredictor(torch.nn.Module):
         x = self.linear2(x)
         x = self.activation2(x)
         x = self.linear3(x)
-        x = self.sigmoid(x)
         return x
     
 

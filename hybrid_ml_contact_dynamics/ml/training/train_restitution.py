@@ -27,16 +27,18 @@ def main():
 
     mse_analytic = np.mean((e_analytic - e_true_valid)**2)
 
-    e_obs = np.asarray(data['e_obs'])
-    e_true_obs = np.asarray(data['e_true_obs'])
-    mse_obs = np.mean((e_obs - e_true_obs)**2)
-
+    e_obs = data['e_obs']
+    e_true_obs = data['e_true_obs']
+  #  mse_obs = np.mean((e_obs - e_true_obs)**2)
     print(f"mse_analytic is = {mse_analytic}")
-    print(f"mse observed is = {mse_obs}")
+  #  print(f"mse observed is = {mse_obs}")
     print(len(y))
     X1 = np.copy(y_windows)
     X2 = h_windows
 
+    r_true = e_true_obs - e_obs
+    r_true = np.asarray(r_true, dtype=np.float32)
+    r_true = torch.from_numpy(r_true)
     print(len(X1))
     X1 = np.asarray(X1, dtype=np.float32)
     X2 = np.asarray(X2, dtype=np.float32)
@@ -59,18 +61,19 @@ def main():
     model.train()
 
     running_loss = 0
-    epochs = 1000
+    epochs = 10000
     for i in range(epochs):
         optimizer.zero_grad()
 
-        predictions = model(X)
+        r_hat = model(X)
         # print(predictions.min())
         # print(predictions.max())
     #    print(predictions.mean())
         # print(predictions.std())
 
 
-        loss = loss_fn(predictions, y)
+        loss = loss_fn(r_hat, r_true)
+
         loss.backward()
 
         optimizer.step()
@@ -81,3 +84,15 @@ def main():
             last_loss = running_loss / 10
             print(last_loss)
             running_loss = 0
+
+    e_obs = torch.from_numpy(e_obs)
+    e_hat = torch.clamp(e_obs + r_hat, 0, 1)
+ #   e_hat = np.asarray(e_hat)
+ #   e_obs = np.asarray(data['e_obs'])
+    e_true_obs = np.asarray(data['e_true_obs'])
+    e_true_obs = torch.from_numpy(e_true_obs)
+
+    mse_obs = torch.mean((e_obs - e_true_obs)**2)
+    print(f"mse observed is = {mse_obs}")
+    mse_residual = torch.mean((e_hat - e_true_obs)**2)
+    print(f"mse residual = {mse_residual}")
