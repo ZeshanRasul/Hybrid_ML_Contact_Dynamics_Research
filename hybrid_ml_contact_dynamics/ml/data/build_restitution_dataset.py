@@ -15,9 +15,13 @@ class Restitution_Data_Builder:
         for i in range(50):
             with open(f"hybrid_ml_contact_dynamics/experiments/freefall/runs/{i}/{date}/results/validation.json") as f:
                 loaded_json = json.load(f)
-                self.true_y.append(loaded_json['e actual mean'])
-                self.prev_v.append(loaded_json['x input'])
-                self.post_v.append(loaded_json['x input'])
+                x_input = loaded_json['x input']
+                self.true_y.append(loaded_json['e actual mean'])                    
+
+                for i in range(len(x_input[:])):
+                    self.prev_v.append(loaded_json['x input'][:][0][1])
+                    self.post_v.append(loaded_json['x input'][:][0][2])
+
                 self.training_data.append(self.prev_v)
                 self.training_data.append(self.post_v)
 
@@ -27,7 +31,7 @@ class Restitution_Data_Builder:
 
     def save(self):
         Path(f"hybrid_ml_contact_dynamics/ml/data/restitution_data").mkdir(parents=True, exist_ok=True)
-        np.savez_compressed(f"hybrid_ml_contact_dynamics/ml/data/restitution_data/training_data.npz", v_prev=self.training_data[0], v_post=self.training_data[0][:], e_actual=self.true_y)
+        np.savez_compressed(f"hybrid_ml_contact_dynamics/ml/data/restitution_data/training_data.npz", v_prev=self.training_data[0][0], v_post=self.training_data[0][1], e_actual=self.true_y)
         
 
     def load(self):
