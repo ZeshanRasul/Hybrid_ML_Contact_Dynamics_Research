@@ -24,6 +24,7 @@ def validate_restitution(j, data, circle: Circle, plane: Plane, dt: float, run_c
     h_windows = list()
     vyidx = 0
     hidx = 0
+    e_all = list()
     for i in range (len(vy) - 1):
         if (i - half >= 0 and i + half <= (len(vy) -1) and vy[i] < -v_eps and vy[i+1] > v_eps):
             e_est_i = vy[i+1] / (-vy[i])
@@ -33,6 +34,7 @@ def validate_restitution(j, data, circle: Circle, plane: Plane, dt: float, run_c
             vy_noise = np.random.normal(0, 1, len(vy_window))
             vy_window = vy_window + vy_noise
             vy_window = vy_window.tolist()
+            e_all.append(circle.get_restitution())
            # vy_window = np.asarray(vy_window, dtype=np.float64)
 
             h_window = h[i-half : i + half]
@@ -104,7 +106,8 @@ def validate_restitution(j, data, circle: Circle, plane: Plane, dt: float, run_c
         'Height ratios min': h_ratios_min,
         'Height ratios max': h_ratios_max,
         'Y Windows': vy_windows,
-        'H Windows': h_windows
+        'H Windows': h_windows,
+        'e true': e_all
         }
     
     with open(f"hybrid_ml_contact_dynamics/experiments/freefall/runs/{j}/{date}/results/validation.json", 'w', encoding='utf-8') as f:

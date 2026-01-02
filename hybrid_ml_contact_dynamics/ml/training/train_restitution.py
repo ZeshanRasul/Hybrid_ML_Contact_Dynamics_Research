@@ -12,13 +12,16 @@ def main():
 
     X1 = np.zeros((6040))
     X2 = np.zeros((6040))
-        
+    y = np.zeros((6040))
+
     y_windows = list()
     h_windows = list()
     y_windows = data['y_windows']
     h_windows = data['h_windows']
     y_windows = np.asarray(y_windows, dtype=np.float64)
     h_windows = np.asarray(h_windows, dtype=np.float64)
+
+    y = data['e_true']
 
     X1 = y_windows
     X2 = h_windows
@@ -45,12 +48,12 @@ def main():
 
         predictions = model(X1)
         
-      #  loss = loss_fn(predictions, y)
-     #   loss.backward()
+        loss = loss_fn(predictions, y)
+        loss.backward()
 
         optimizer.step()
 
-    #    running_loss += loss.item()
+        running_loss += loss.item()
 
         if i % 10 == 0:
             last_loss = running_loss / 50
