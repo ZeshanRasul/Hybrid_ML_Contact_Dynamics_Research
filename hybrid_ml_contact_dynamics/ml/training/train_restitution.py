@@ -11,7 +11,7 @@ def main():
     data = data_builder.load()
 
     X = np.zeros((6717, 2))
-    y = list()
+    y = np.zeros((6717, 1))
         
     X[:,0] = data['v_prev']
     X[:,1] = data['v_post']
@@ -26,6 +26,7 @@ def main():
     X = torch.from_numpy(X)
     y = np.asarray(y, dtype=np.float32)
     y = torch.from_numpy(y)
+    y = y.reshape([6717, 1])
 
     loss_fn = torch.nn.MSELoss()
 
@@ -33,10 +34,10 @@ def main():
     print(y.max())
     print(y.mean())
     print(y.std())
-    
+    print(e_analytic.min(), e_analytic.max(), e_analytic.mean(), e_analytic.std())
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
-    #model.train()
+    model.train()
 
     running_loss = 0
     epochs = 100
