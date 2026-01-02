@@ -31,7 +31,8 @@ def validate_restitution(j, data, circle: Circle, plane: Plane, dt: float, run_c
             e_estimates.append(e_est_i)
             impact_indices.append(i)
             vy_window = vy[i-half : i + half]
-            vy_noise = np.random.normal(0, 1, len(vy_window))
+            print(abs(vy[i]))
+            vy_noise = np.random.normal(0, 0.1, len(vy_window))
             vy_window = vy_window + vy_noise
             vy_window = vy_window.tolist()
             e_all.append(circle.get_restitution())

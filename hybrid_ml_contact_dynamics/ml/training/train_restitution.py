@@ -10,7 +10,7 @@ def main():
     data_builder.save()
     data = data_builder.load()
 
-    X1 = np.zeros((1903, 4))
+    X1 = np.zeros((1795, 4))
  #   X2 = np.zeros((1903, 0))
  #   y = np.zeros((1903, 0))
 
@@ -36,19 +36,24 @@ def main():
 #    X2 = torch.from_numpy(X2)
 
   #  X1 = X1.reshape(1903,)
-    X = np.zeros((8, 1903))
+    X = np.zeros((8, 1795))
     X = np.concatenate([X1, X2], axis = 1)
     X = torch.from_numpy(X)
     loss_fn = torch.nn.MSELoss()
     
     y = np.asarray(y, dtype=np.float32)
-    y = y.reshape(1903, 1)
+    y_mean = np.mean(y)
+    mse_mean = np.mean((y - y_mean)**2)
+
+    print(f"mse mean is: {mse_mean}")
+    y = y.reshape(1795, 1)
     y = torch.from_numpy(y)
     print(X.shape)
     # print(X1.min())
     # print(X1.max())
     # print(X1.mean())
     # print(X1.std())
+
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     model.train()
@@ -61,7 +66,7 @@ def main():
         predictions = model(X)
         # print(predictions.min())
         # print(predictions.max())
-        # print(predictions.mean())
+    #    print(predictions.mean())
         # print(predictions.std())
 
 
