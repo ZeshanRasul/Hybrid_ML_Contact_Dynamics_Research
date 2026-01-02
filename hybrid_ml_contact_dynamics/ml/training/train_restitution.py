@@ -9,20 +9,34 @@ def main():
     data_builder = Restitution_Data_Builder()
     data_builder.save()
     data = data_builder.load()
-    X = list()
-    for i in range(len(data['v_prev'])):
-        X.append(data['v_prev'][i])
-        X.append(data['v_post'][i])
+
+    X = np.zeros((6717, 2))
+    y = list()
+        
+    X[:,0] = data['v_prev']
+    X[:,1] = data['v_post']
+    y = data['e_actual']
+
+    e_analytic = data['v_post'] / (-data['v_prev'])
+    analytic_mse = np.mean((e_analytic - y)**2)
+
+    print(f"Analytic error is: {analytic_mse}")
+
     X = np.asarray(X, dtype=np.float32)
     X = torch.from_numpy(X)
-    y = data['e_actual']
-    print(len(data['e_actual']))
     y = np.asarray(y, dtype=np.float32)
     y = torch.from_numpy(y)
 
     loss_fn = torch.nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    model.train()
+
+    print(y.min())
+    print(y.max())
+    print(y.mean())
+    print(y.std())
+    
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+    #model.train()
 
     running_loss = 0
     epochs = 100
