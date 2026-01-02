@@ -56,15 +56,26 @@ def validate_restitution(j, data, circle: Circle, plane: Plane, dt: float, run_c
         h_ratios_min = h_ratios.min()
         h_ratios_max = h_ratios.max()
 
+    e_estimates_mean = 0
+    e_estimates_min = 0
+    e_estimates_max = 0
+    e_estimates_std = 0
+
+    if (len(e_estimates > 0)):
+        e_estimates_mean = e_estimates.mean()
+        e_estimates_min = e_estimates.min()
+        e_estimates_max = e_estimates.max()
+        e_estimates_std = e_estimates.std()
+
     data = {
         'Delta Time': dt,
-        'e estimates mean': e_estimates.mean(),
+        'e estimates mean': e_estimates_mean,
         'e actual mean': e.mean(),
-        'e estimates std': e_estimates.std(),
+        'e estimates std': e_estimates_std,
         'e actual std': e.std(),
-        'e estimates min': e_estimates.min(),
+        'e estimates min': e_estimates_min,
         'e actual min': e.min(),
-        'e estimates max': e_estimates.max(),
+        'e estimates max': e_estimates_max,
         'e actual max': e.max(),
         'Impact count': len(impact_indices),
         'Height ratios mean': h_ratios_mean,

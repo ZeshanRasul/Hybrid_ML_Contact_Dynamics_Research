@@ -11,27 +11,29 @@ class Restitution_Data_Builder:
         self.true_y = list()
         self.prev_v = list()
         self.post_v = list()
-        date = "01-01-2026,22:30:13"
-        for i in range(50):
+        date = "02-01-2026,01:19:25"
+        for i in range(1000):
             with open(f"hybrid_ml_contact_dynamics/experiments/freefall/runs/{i}/{date}/results/validation.json") as f:
                 loaded_json = json.load(f)
                 x_input = loaded_json['x input']
-                self.true_y.append(loaded_json['e actual mean'])                    
+                self.true_y.append(loaded_json['e actual mean']) 
 
                 for i in range(len(x_input[:])):
                     self.prev_v.append(loaded_json['x input'][:][0][1])
+                 #   print(loaded_json['x input'][:][0][1])
+                    self.training_data.append(self.prev_v)
                     self.post_v.append(loaded_json['x input'][:][0][2])
+                    self.training_data.append(self.post_v)
+                #    print(loaded_json['x input'][:][0][2])
 
-                self.training_data.append(self.prev_v)
-                self.training_data.append(self.post_v)
 
 
-        self.training_data = np.asarray(self.training_data, dtype=object)
+        self.training_data = np.asarray(self.training_data, dtype=np.float64)
         self.true_y = np.asarray(self.true_y, dtype=np.float64)
 
     def save(self):
         Path(f"hybrid_ml_contact_dynamics/ml/data/restitution_data").mkdir(parents=True, exist_ok=True)
-        np.savez_compressed(f"hybrid_ml_contact_dynamics/ml/data/restitution_data/training_data.npz", v_prev=self.training_data[0][0], v_post=self.training_data[0][1], e_actual=self.true_y)
+        np.savez_compressed(f"hybrid_ml_contact_dynamics/ml/data/restitution_data/training_data.npz", v_prev=self.prev_v, v_post=self.post_v, e_actual=self.true_y)
         
 
     def load(self):
@@ -39,4 +41,4 @@ class Restitution_Data_Builder:
 
 def main():
     data_builder = Restitution_Data_Builder()
-    data_builder.save()
+   # data_builder.save()

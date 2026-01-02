@@ -7,21 +7,24 @@ from hybrid_ml_contact_dynamics.ml.data.build_restitution_dataset import Restitu
 def main():
     model = RestitutionPredictor()
     data_builder = Restitution_Data_Builder()
+    data_builder.save()
     data = data_builder.load()
-    X = np.zeros((50, 2))
-    X[0]  = data['v_prev']
-    X[1] = (data['v_post'])
+    X = list()
+    for i in range(len(data['v_prev'])):
+        X.append(data['v_prev'][i])
+        X.append(data['v_post'][i])
     X = np.asarray(X, dtype=np.float32)
     X = torch.from_numpy(X)
     y = data['e_actual']
-    y = y.reshape(50, 1)
+    print(len(data['e_actual']))
     y = np.asarray(y, dtype=np.float32)
     y = torch.from_numpy(y)
-    
+
     loss_fn = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    running_loss = 0
     model.train()
+
+    running_loss = 0
     epochs = 100
     for i in range(epochs):
         optimizer.zero_grad()

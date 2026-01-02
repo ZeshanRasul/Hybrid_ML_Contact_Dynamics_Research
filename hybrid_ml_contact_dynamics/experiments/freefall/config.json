@@ -1,5 +1,5 @@
 {
-  "Runs": 50,
+  "Runs": 1000,
   "Delta Time": 0.01666666666666,
   "End Time": 300,
   "Start Pos X": 100,
