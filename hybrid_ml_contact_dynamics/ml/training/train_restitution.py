@@ -10,33 +10,38 @@ def main():
     data_builder.save()
     data = data_builder.load()
 
-    X1 = np.zeros((1795, 4))
- #   X2 = np.zeros((1903, 0))
- #   y = np.zeros((1903, 0))
 
     y_windows = list()
     h_windows = list()
-#    y_windows = data['y_windows']
-   # h_windows = data['h_windows']
     y_windows = np.asarray(data['y_windows'], dtype=object)
     h_windows = np.asarray(data['h_windows'], dtype=object)
 
     print(y_windows.shape)
     print(h_windows.shape)
     y = data['e_true']
+    
+    e_analytic = np.asarray(data['e_analytic'])
+    e_true_valid = y[:len(e_analytic)]
 
+    mse_analytic = np.mean((e_analytic - e_true_valid)**2)
+
+    e_obs = np.asarray(data['e_obs'])
+    e_true_obs = np.asarray(data['e_true_obs'])
+    mse_obs = np.mean((e_obs - e_true_obs)**2)
+
+
+
+    print(f"mse_analytic is = {mse_analytic}")
+    print(f"mse observed is = {mse_obs}")
     print(len(y))
     X1 = np.copy(y_windows)
     X2 = h_windows
 
     print(len(X1))
     X1 = np.asarray(X1, dtype=np.float32)
-#    X1 = torch.from_numpy(X1)
     X2 = np.asarray(X2, dtype=np.float32)
-#    X2 = torch.from_numpy(X2)
 
-  #  X1 = X1.reshape(1903,)
-    X = np.zeros((8, 1795))
+    X = np.zeros((10, 1773))
     X = np.concatenate([X1, X2], axis = 1)
     X = torch.from_numpy(X)
     loss_fn = torch.nn.MSELoss()
@@ -46,14 +51,9 @@ def main():
     mse_mean = np.mean((y - y_mean)**2)
 
     print(f"mse mean is: {mse_mean}")
-    y = y.reshape(1795, 1)
+    y = y.reshape(1773, 1)
     y = torch.from_numpy(y)
     print(X.shape)
-    # print(X1.min())
-    # print(X1.max())
-    # print(X1.mean())
-    # print(X1.std())
-
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     model.train()

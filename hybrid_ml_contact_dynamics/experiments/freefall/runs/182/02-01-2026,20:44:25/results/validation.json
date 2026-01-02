@@ -1,0 +1,24 @@
+{
+    "Delta Time": 0.01666666666666,
+    "e estimates mean": 0.021908088452690745,
+    "e actual mean": 0.021899998316629917,
+    "e estimates std": 0.0,
+    "e actual std": 3.469446951953614e-18,
+    "e estimates min": 0.021908088452690745,
+    "e actual min": 0.02189999831662992,
+    "e estimates max": 0.021908088452690745,
+    "e actual max": 0.02189999831662992,
+    "Impact count": 1,
+    "Height ratios mean": 0,
+    "Height ratios min": 0,
+    "Height ratios max": 0,
+    "Y Windows": [],
+    "H Windows": [],
+    "e true": [
+        0.02189999831662992
+    ],
+    "e analytic": [
+        0.021908088452690745
+    ],
+    "e obs": []
+}

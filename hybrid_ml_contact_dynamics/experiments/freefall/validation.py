@@ -3,7 +3,7 @@ import json
 from hybrid_ml_contact_dynamics.physics.primitives.circle import Circle
 from hybrid_ml_contact_dynamics.physics.primitives.plane import Plane
 
-def validate_restitution(j, data, circle: Circle, plane: Plane, dt: float, run_count, date):
+def validate_restitution(run_id, data, circle: Circle, plane: Plane, dt: float, run_count, date):
     y = data['position'][:, 1]
     vy = data['velocity'][:, 1]
     t = data['time'][:, ]
@@ -18,39 +18,84 @@ def validate_restitution(j, data, circle: Circle, plane: Plane, dt: float, run_c
     pos_eps = 1e-3
     W = 7
     half = 7 // 3
-    sigma = 0.25
-    jitter = 0
+    sigma = 0.1
+    jitter_min = -5
+    jitter_max = 5
     vy_windows = list()
     h_windows = list()
     vyidx = 0
     hidx = 0
     e_all = list()
-    for i in range (len(vy) - 1):
-        if (i - half >= 0 and i + half <= (len(vy) -1) and vy[i] < -v_eps and vy[i+1] > v_eps):
+    e_analytic = []
+    e_obs = []
+    e_true_obs = []
+
+    for i in range (len(vy) - 1):        
+        if (i - half >= 0 and i + half <= (len(vy) - 1) and vy[i] < -v_eps and vy[i+1] > v_eps):
             e_est_i = vy[i+1] / (-vy[i])
             e_estimates.append(e_est_i)
             impact_indices.append(i)
-            vy_window = vy[i-half : i + half]
-            print(abs(vy[i]))
-            vy_noise = np.random.normal(0, 0.1, len(vy_window))
-            vy_window = vy_window + vy_noise
-            vy_window = vy_window.tolist()
-            e_all.append(circle.get_restitution())
-           # vy_window = np.asarray(vy_window, dtype=np.float64)
 
-            h_window = h[i-half : i + half]
-            h_window = h_window.tolist()
+            j = i + np.random.randint(jitter_min, jitter_max + 1)
+            if (j - half >= 0 and j + half <= (len(vy) - 1)):
+                vy_window = vy[j-half : j + half + 1]
+                vy_noise = np.random.normal(0, sigma, len(vy_window))
+                vy_window = vy_window + vy_noise
+                vy_window = vy_window.tolist()
+                e_all.append(circle.get_restitution())
+           # vy_window = np.asarray(vy_window, dtype=np.float64)
+                eps = 1e-3
+
+                v_minus = vy[i]
+                v_plus = vy[i+1]
+
+                if (-v_minus < eps):
+                    continue
+
+                e_hat = v_plus / (-v_minus)
+                e_hat = np.clip(e_hat, 0.0, 1.0)
+                e_analytic.append(e_hat)
+                
+                for k in range(len(vy_window) - 1):
+                    v0 = vy_window[k]
+                    v1 = vy_window[k+1]
+
+                    if v0 < -v_eps and v1 > v_eps:
+                        denom = -v0
+
+                        if denom < eps:
+                            break
+
+                        e_hat = v1 / denom
+                        e_hat = np.clip(e_hat, 0.0, 1.0)
+                        e_obs.append(e_hat)
+                        e_true_obs.append(circle.get_restitution())
+
+
+                # v_minus = vy[j]
+                # v_plus = vy[j+1]
+
+                # if (-v_minus < eps):
+                #     continue
+
+                # e_hat = v_plus / (-v_minus)
+                # e_hat = np.clip(e_hat, 0.0, 1.0)
+                # e_obs.append(e_hat)
+
+                h_window = h[j-half : j + half + 1]
+                h_window = h_window.tolist()
           #  h_window = np.asarray(h_window, dtype=np.float64)
-            vy_windows.append(vy_window)
-            h_windows.append(h_window)
-            vyidx += 1
-            hidx += 1
+                vy_windows.append(vy_window)
+                h_windows.append(h_window)
+                vyidx += 1
+                hidx += 1
 
  #   impact_indices = np.asarray(impact_indices, dtype=np.int64)
     e_estimates = np.asarray(e_estimates, dtype=np.float64)
    # e = np.asarray(e, dtype=np.float64)
   #  vy_windows = np.asarray(vy_windows, dtype=np.array)
   #  h_windows = np.asarray(h_windows, dtype=np.array)
+  #  e_analytic = np.asarray(e_analytic)
 
     impact_times = t[impact_indices]
     impact_steps = np.diff(impact_indices)
@@ -108,8 +153,11 @@ def validate_restitution(j, data, circle: Circle, plane: Plane, dt: float, run_c
         'Height ratios max': h_ratios_max,
         'Y Windows': vy_windows,
         'H Windows': h_windows,
-        'e true': e_all
+        'e true': e_all,
+        'e analytic': e_analytic,
+        'e obs': e_obs,
+        'e true obs': e_true_obs
         }
     
-    with open(f"hybrid_ml_contact_dynamics/experiments/freefall/runs/{j}/{date}/results/validation.json", 'w', encoding='utf-8') as f:
+    with open(f"hybrid_ml_contact_dynamics/experiments/freefall/runs/{run_id}/{date}/results/validation.json", 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
