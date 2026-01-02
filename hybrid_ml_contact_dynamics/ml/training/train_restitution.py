@@ -39,6 +39,7 @@ def main():
     loss_fn = torch.nn.MSELoss()
     
     y = np.asarray(y, dtype=np.float32)
+    y = y.reshape(1903, 1)
     y = torch.from_numpy(y)
    # print(len(X1))
     # print(X1.min())
@@ -46,16 +47,21 @@ def main():
     # print(X1.mean())
     # print(X1.std())
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     model.train()
 
     running_loss = 0
-    epochs = 100
+    epochs = 1000
     for i in range(epochs):
         optimizer.zero_grad()
 
         predictions = model(X)
-        
+        print(predictions.min())
+        print(predictions.max())
+        print(predictions.mean())
+        print(predictions.std())
+
+
         loss = loss_fn(predictions, y)
         loss.backward()
 
