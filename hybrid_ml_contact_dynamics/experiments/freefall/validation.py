@@ -38,10 +38,7 @@ def validate_restitution(run_id, data, circle: Circle, plane: Plane, dt: float, 
 
             j = i + np.random.randint(jitter_min, jitter_max + 1)
             if (j - half >= 0 and j + half <= (len(vy) - 1)):
-                vy_window = vy[j-half : j + half + 1]
-                vy_noise = np.random.normal(0, sigma, len(vy_window))
-                vy_window = vy_window + vy_noise
-                vy_window = vy_window.tolist()
+
                 e_all.append(circle.get_restitution())
            # vy_window = np.asarray(vy_window, dtype=np.float64)
                 eps = 1e-3
@@ -55,7 +52,10 @@ def validate_restitution(run_id, data, circle: Circle, plane: Plane, dt: float, 
                 e_hat = v_plus / (-v_minus)
                 e_hat = np.clip(e_hat, 0.0, 1.0)
                 e_analytic.append(e_hat)
-                
+                                        
+                vy_window = vy[j-half : j + half + 1]
+                h_window = h[j-half : j + half + 1]
+
                 for k in range(len(vy_window) - 1):
                     v0 = vy_window[k]
                     v1 = vy_window[k+1]
@@ -63,14 +63,21 @@ def validate_restitution(run_id, data, circle: Circle, plane: Plane, dt: float, 
                     if v0 < -v_eps and v1 > v_eps:
                         denom = -v0
 
-                        if denom < eps:
+                        if denom < eps:                            
                             break
 
                         e_hat = v1 / denom
                         e_hat = np.clip(e_hat, 0.0, 1.0)
                         e_obs.append(e_hat)
                         e_true_obs.append(circle.get_restitution())
-
+                        vy_noise = np.random.normal(0, sigma, len(vy_window))
+                        vy_window = vy_window + vy_noise
+                        vy_window = vy_window.tolist()
+                        h_window = h_window.tolist()
+                        vy_windows.append(vy_window)
+                        h_windows.append(h_window)
+                        vyidx += 1
+                        hidx += 1
 
                 # v_minus = vy[j]
                 # v_plus = vy[j+1]
@@ -82,13 +89,8 @@ def validate_restitution(run_id, data, circle: Circle, plane: Plane, dt: float, 
                 # e_hat = np.clip(e_hat, 0.0, 1.0)
                 # e_obs.append(e_hat)
 
-                h_window = h[j-half : j + half + 1]
-                h_window = h_window.tolist()
           #  h_window = np.asarray(h_window, dtype=np.float64)
-                vy_windows.append(vy_window)
-                h_windows.append(h_window)
-                vyidx += 1
-                hidx += 1
+                
 
  #   impact_indices = np.asarray(impact_indices, dtype=np.int64)
     e_estimates = np.asarray(e_estimates, dtype=np.float64)

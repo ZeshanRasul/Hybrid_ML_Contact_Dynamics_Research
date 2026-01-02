@@ -18,18 +18,18 @@ def main():
 
     print(y_windows.shape)
     print(h_windows.shape)
-    y = data['e_true']
+    y = data['e_true_obs']
     
+    y_true = data['e_true']
+
     e_analytic = np.asarray(data['e_analytic'])
-    e_true_valid = y[:len(e_analytic)]
+    e_true_valid = y_true[:len(e_analytic)]
 
     mse_analytic = np.mean((e_analytic - e_true_valid)**2)
 
     e_obs = np.asarray(data['e_obs'])
     e_true_obs = np.asarray(data['e_true_obs'])
     mse_obs = np.mean((e_obs - e_true_obs)**2)
-
-
 
     print(f"mse_analytic is = {mse_analytic}")
     print(f"mse observed is = {mse_obs}")
@@ -41,7 +41,7 @@ def main():
     X1 = np.asarray(X1, dtype=np.float32)
     X2 = np.asarray(X2, dtype=np.float32)
 
-    X = np.zeros((10, 1773))
+    X = np.zeros((10, 482))
     X = np.concatenate([X1, X2], axis = 1)
     X = torch.from_numpy(X)
     loss_fn = torch.nn.MSELoss()
@@ -51,7 +51,7 @@ def main():
     mse_mean = np.mean((y - y_mean)**2)
 
     print(f"mse mean is: {mse_mean}")
-    y = y.reshape(1773, 1)
+    y = y.reshape(482, 1)
     y = torch.from_numpy(y)
     print(X.shape)
 
