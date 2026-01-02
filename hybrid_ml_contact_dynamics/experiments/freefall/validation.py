@@ -16,17 +16,38 @@ def validate_restitution(j, data, circle: Circle, plane: Plane, dt: float, run_c
     x_input = []
     v_eps = 0.5
     pos_eps = 1e-3
+    W = 7
+    half = 7 // 3
+    sigma = 0.25
+    jitter = 0
+    vy_windows = list()
+    h_windows = list()
+    vyidx = 0
+    hidx = 0
     for i in range (len(vy) - 1):
-        if (vy[i] < -v_eps and vy[i+1] > v_eps):
+        if (i - half >= 0 and i + half <= (len(vy) -1) and vy[i] < -v_eps and vy[i+1] > v_eps):
             e_est_i = vy[i+1] / (-vy[i])
             e_estimates.append(e_est_i)
             impact_indices.append(i)
-            x = [circle.get_restitution(), vy[i], vy[i+1], dt, circle.get_mass(), circle.get_radius()]
-            x_input.append(x)
+            vy_window = vy[i-half : i + half]
+            vy_noise = np.random.normal(0, 1, len(vy_window))
+            vy_window = vy_window + vy_noise
+            vy_window = vy_window.tolist()
+           # vy_window = np.asarray(vy_window, dtype=np.float64)
 
-    impact_indices = np.asarray(impact_indices, dtype=np.int64)
+            h_window = h[i-half : i + half]
+            h_window = h_window.tolist()
+          #  h_window = np.asarray(h_window, dtype=np.float64)
+            vy_windows.append(vy_window)
+            h_windows.append(h_window)
+            vyidx += 1
+            hidx += 1
+
+ #   impact_indices = np.asarray(impact_indices, dtype=np.int64)
     e_estimates = np.asarray(e_estimates, dtype=np.float64)
-    e = np.asarray(e, dtype=np.float64)
+   # e = np.asarray(e, dtype=np.float64)
+  #  vy_windows = np.asarray(vy_windows, dtype=np.array)
+  #  h_windows = np.asarray(h_windows, dtype=np.array)
 
     impact_times = t[impact_indices]
     impact_steps = np.diff(impact_indices)
@@ -61,12 +82,13 @@ def validate_restitution(j, data, circle: Circle, plane: Plane, dt: float, run_c
     e_estimates_max = 0
     e_estimates_std = 0
 
-    if (len(e_estimates > 0)):
+    if (len(e_estimates) > 0):
         e_estimates_mean = e_estimates.mean()
         e_estimates_min = e_estimates.min()
         e_estimates_max = e_estimates.max()
         e_estimates_std = e_estimates.std()
 
+        e_estimates = e_estimates.tolist()
     data = {
         'Delta Time': dt,
         'e estimates mean': e_estimates_mean,
@@ -81,7 +103,8 @@ def validate_restitution(j, data, circle: Circle, plane: Plane, dt: float, run_c
         'Height ratios mean': h_ratios_mean,
         'Height ratios min': h_ratios_min,
         'Height ratios max': h_ratios_max,
-        'x input': x_input
+        'Y Windows': vy_windows,
+        'H Windows': h_windows
         }
     
     with open(f"hybrid_ml_contact_dynamics/experiments/freefall/runs/{j}/{date}/results/validation.json", 'w', encoding='utf-8') as f:

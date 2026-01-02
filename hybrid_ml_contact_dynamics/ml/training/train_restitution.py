@@ -10,31 +10,30 @@ def main():
     data_builder.save()
     data = data_builder.load()
 
-    X = np.zeros((6717, 2))
-    y = np.zeros((6717, 1))
+    X1 = np.zeros((6040))
+    X2 = np.zeros((6040))
         
-    X[:,0] = data['v_prev']
-    X[:,1] = data['v_post']
-    y = data['e_actual']
+    y_windows = list()
+    h_windows = list()
+    y_windows = data['y_windows']
+    h_windows = data['h_windows']
+    y_windows = np.asarray(y_windows, dtype=np.float64)
+    h_windows = np.asarray(h_windows, dtype=np.float64)
 
-    e_analytic = data['v_post'] / (-data['v_prev'])
-    analytic_mse = np.mean((e_analytic - y)**2)
+    X1 = y_windows
+    X2 = h_windows
 
-    print(f"Analytic error is: {analytic_mse}")
-
-    X = np.asarray(X, dtype=np.float32)
-    X = torch.from_numpy(X)
-    y = np.asarray(y, dtype=np.float32)
-    y = torch.from_numpy(y)
-    y = y.reshape([6717, 1])
+    X1 = np.asarray(X1, dtype=np.float32)
+    X1 = torch.from_numpy(X1)
+    X2 = np.asarray(X2, dtype=np.float32)
+    X2 = torch.from_numpy(X2)
 
     loss_fn = torch.nn.MSELoss()
 
-    print(y.min())
-    print(y.max())
-    print(y.mean())
-    print(y.std())
-    print(e_analytic.min(), e_analytic.max(), e_analytic.mean(), e_analytic.std())
+    # print(X1.min())
+    # print(X1.max())
+    # print(X1.mean())
+    # print(X1.std())
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     model.train()
@@ -44,14 +43,14 @@ def main():
     for i in range(epochs):
         optimizer.zero_grad()
 
-        predictions = model(X)
+        predictions = model(X1)
         
-        loss = loss_fn(predictions, y)
-        loss.backward()
+      #  loss = loss_fn(predictions, y)
+     #   loss.backward()
 
         optimizer.step()
 
-        running_loss += loss.item()
+    #    running_loss += loss.item()
 
         if i % 10 == 0:
             last_loss = running_loss / 50
