@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+from sklearn.model_selection import train_test_split
 
 from hybrid_ml_contact_dynamics.ml.models.model_restitution import RestitutionPredictor
 from hybrid_ml_contact_dynamics.ml.data.build_restitution_dataset import Restitution_Data_Builder
@@ -58,6 +59,14 @@ def main():
     y = torch.from_numpy(y)
     print(X.shape)
 
+   # X_train, X_test, y_train, y_test = train_test_split(X, r_true, test_size=0.33, random_state=42)
+
+    indices = np.random.permutation(2136)
+    training_index, test_index = indices[:1500], indices[1500:]
+    X_train, X_test = X[training_index, :], X[test_index, :]
+    y_train, y_test = r_true[training_index, :], r_true[test_index, :]
+    print(X_train.shape)
+    print(X_test.shape)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     model.train()
 
@@ -66,14 +75,9 @@ def main():
     for i in range(epochs):
         optimizer.zero_grad()
 
-        r_hat = model(X)
-        # print(predictions.min())
-        # print(predictions.max())
-    #    print(predictions.mean())
-        # print(predictions.std())
+        r_hat_train = model(X_train)
 
-
-        loss = loss_fn(r_hat, r_true)
+        loss = loss_fn(r_hat_train, y_train)
 
         loss.backward()
 
@@ -87,35 +91,43 @@ def main():
             running_loss = 0
 
     e_obs = torch.from_numpy(np.asarray(e_obs, dtype=np.float32).reshape(-1, 1))
-    e_hat = torch.clamp(e_obs + r_hat, 0, 1)
+    e_obs_train, e_obs_test = e_obs[training_index], e_obs[test_index]
+    print(e_obs_train.shape)
+    print(e_obs_test.shape)
+    e_hat_train = torch.clamp(e_obs_train + r_hat_train, 0, 1)
  #   e_hat = np.asarray(e_hat)
  #   e_obs = np.asarray(data['e_obs'])
     e_true_obs = np.asarray(data['e_true_obs'])
     e_true_obs = torch.from_numpy(np.asarray(e_true_obs, dtype=np.float32).reshape(-1, 1))
 
-    mse_obs = torch.mean((e_obs - e_true_obs)**2)
-    print(f"mse observed pre eval is = {mse_obs}")
-    mse_residual = torch.mean((e_hat - e_true_obs)**2)
-    print(f"mse residual pre eval = {mse_residual}")
+    e_true_obs_train, e_true_obs_test = e_true_obs[training_index], e_true_obs[test_index]
+
+
+    mse_obs_train = torch.mean((e_obs_train - e_true_obs_train)**2)
+    print(f"mse observed pre eval is = {mse_obs_train}")
+    mse_residual_train = torch.mean((e_hat_train - e_true_obs_train)**2)
+    print(f"mse residual pre eval = {mse_residual_train}")
+    
+    alpha = 0.25
 
     model.eval()
     with torch.no_grad():
-        r_hat = model(X)
-        e_hat = torch.clamp(e_obs + r_hat, 0, 1)
+        r_hat_test = model(X_test)
+        e_hat_test = torch.clamp(e_obs_test + alpha * r_hat_test, 0, 1)
     
     clamp_rate = 0
     with torch.no_grad():
-        e_raw = e_obs + r_hat
-        clamp_rate = ((e_raw < 0.0) | (e_raw > 1.0)).float().mean().item()
+        e_raw_test = e_obs_test + r_hat_test
+        clamp_rate = ((e_raw_test < 0.0) | (e_raw_test > 1.0)).float().mean().item()
 
     print(f"clamp rate = {clamp_rate}")
 
-    mse_obs = torch.mean((e_obs - e_true_obs)**2)
-    print(f"mse observed post eval is = {mse_obs}")
-    mse_residual = torch.mean((e_hat - e_true_obs)**2)
-    print(f"mse residual post eval = {mse_residual}")
+    mse_obs_test = torch.mean((e_obs_test - e_true_obs_test)**2)
+    print(f"mse observed post eval is = {mse_obs_test}")
+    mse_residual_test = torch.mean((e_hat_test - e_true_obs_test)**2)
+    print(f"mse residual post eval = {mse_residual_test}")
 
-    r_true_np = (e_true_obs - e_obs).cpu().numpy()
-    r_hat_np = r_hat.cpu().numpy()
-    print(r_true_np.mean(), r_true_np.std())
-    print(r_hat_np.mean(), r_hat_np.std())
+    r_true_np_test = (e_true_obs_test - e_obs_test).cpu().numpy()
+    r_hat_np_test = r_hat_test.cpu().numpy()
+    print(r_true_np_test.mean(), r_true_np_test.std())
+    print(r_hat_np_test.mean(), r_hat_np_test.std())
