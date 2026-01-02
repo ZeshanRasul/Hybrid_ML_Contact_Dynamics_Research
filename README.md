@@ -43,9 +43,11 @@ Figures 1-3 illustrate the ground truth dynamics of the system, including phase-
 Figure 1: Position vs Time
 
 ![Velocity-Time evolution plot](/hybrid_ml_contact_dynamics//docs/images/timevsvelocity.png)
+
 Figure 2: Velocity vs Time
 
 ![Position-Velocity evolution plot](/hybrid_ml_contact_dynamics//docs/images/positionvsvelocity.png)
+
 Figure 3: Phase Plot (Velocity vs Position)
 
 ## Data Generation and Trajectory Logging
