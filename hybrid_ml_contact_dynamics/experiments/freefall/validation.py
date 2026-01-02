@@ -65,7 +65,9 @@ def validate_restitution(run_id, data, circle: Circle, plane: Plane, dt: float, 
 
                         if denom < eps:                            
                             break
-
+                        if np.random.rand() < 0.02:
+                            m = np.random.randint(len(vy_window))
+                            vy_window[m] *= np.random.uniform(1.2, 1.35)
                         e_hat = v1 / denom
                         e_hat = np.clip(e_hat, 0.0, 1.0)
                         e_obs.append(e_hat)

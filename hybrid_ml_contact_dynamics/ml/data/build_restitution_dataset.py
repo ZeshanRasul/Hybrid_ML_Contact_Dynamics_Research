@@ -16,14 +16,14 @@ class Restitution_Data_Builder:
         self.e_obs = list()
         self.e_analytic = list()
         self.e_true_obs = list()
-        date = "02-01-2026,21:24:18"
+        date = "02-01-2026,22:13:42"
         y_count = 0
         h_count = 0
         e_count = 0
         e_analytic_count = 0
         e_obs_count = 0
         e_true_obs_count = 0
-        for i in range(300):
+        for i in range(1300):
             with open(f"hybrid_ml_contact_dynamics/experiments/freefall/runs/{i}/{date}/results/validation.json") as f:
                 loaded_json = json.load(f)
                 y_windows = loaded_json['Y Windows']

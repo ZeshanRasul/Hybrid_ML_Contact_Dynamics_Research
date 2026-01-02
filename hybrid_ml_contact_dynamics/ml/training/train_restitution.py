@@ -38,12 +38,13 @@ def main():
 
     r_true = e_true_obs - e_obs
     r_true = np.asarray(r_true, dtype=np.float32)
+    r_true = r_true.reshape(2136, 1)
     r_true = torch.from_numpy(r_true)
     print(len(X1))
     X1 = np.asarray(X1, dtype=np.float32)
     X2 = np.asarray(X2, dtype=np.float32)
 
-    X = np.zeros((10, 482))
+    X = np.zeros((10, 2136))
     X = np.concatenate([X1, X2], axis = 1)
     X = torch.from_numpy(X)
     loss_fn = torch.nn.MSELoss()
@@ -53,7 +54,7 @@ def main():
     mse_mean = np.mean((y - y_mean)**2)
 
     print(f"mse mean is: {mse_mean}")
-    y = y.reshape(482, 1)
+    y = y.reshape(2136, 1)
     y = torch.from_numpy(y)
     print(X.shape)
 
@@ -80,19 +81,41 @@ def main():
 
         running_loss += loss.item()
 
-        if i % 10 == 0:
-            last_loss = running_loss / 10
+        if i % 50 == 0:
+            last_loss = running_loss / 50
             print(last_loss)
             running_loss = 0
 
-    e_obs = torch.from_numpy(e_obs)
+    e_obs = torch.from_numpy(np.asarray(e_obs, dtype=np.float32).reshape(-1, 1))
     e_hat = torch.clamp(e_obs + r_hat, 0, 1)
  #   e_hat = np.asarray(e_hat)
  #   e_obs = np.asarray(data['e_obs'])
     e_true_obs = np.asarray(data['e_true_obs'])
-    e_true_obs = torch.from_numpy(e_true_obs)
+    e_true_obs = torch.from_numpy(np.asarray(e_true_obs, dtype=np.float32).reshape(-1, 1))
 
     mse_obs = torch.mean((e_obs - e_true_obs)**2)
-    print(f"mse observed is = {mse_obs}")
+    print(f"mse observed pre eval is = {mse_obs}")
     mse_residual = torch.mean((e_hat - e_true_obs)**2)
-    print(f"mse residual = {mse_residual}")
+    print(f"mse residual pre eval = {mse_residual}")
+
+    model.eval()
+    with torch.no_grad():
+        r_hat = model(X)
+        e_hat = torch.clamp(e_obs + r_hat, 0, 1)
+    
+    clamp_rate = 0
+    with torch.no_grad():
+        e_raw = e_obs + r_hat
+        clamp_rate = ((e_raw < 0.0) | (e_raw > 1.0)).float().mean().item()
+
+    print(f"clamp rate = {clamp_rate}")
+
+    mse_obs = torch.mean((e_obs - e_true_obs)**2)
+    print(f"mse observed post eval is = {mse_obs}")
+    mse_residual = torch.mean((e_hat - e_true_obs)**2)
+    print(f"mse residual post eval = {mse_residual}")
+
+    r_true_np = (e_true_obs - e_obs).cpu().numpy()
+    r_hat_np = r_hat.cpu().numpy()
+    print(r_true_np.mean(), r_true_np.std())
+    print(r_hat_np.mean(), r_hat_np.std())

@@ -1,0 +1,29 @@
+{
+    "Delta Time": 0.01666666666666,
+    "e estimates mean": 0.9886285840371967,
+    "e actual mean": 0.9882590788407541,
+    "e estimates std": 3.63094629148343e-06,
+    "e actual std": 3.3306690738754696e-16,
+    "e estimates min": 0.9886241542300568,
+    "e actual min": 0.9882590788407545,
+    "e estimates max": 0.9886330479990106,
+    "e actual max": 0.9882590788407545,
+    "Impact count": 3,
+    "Height ratios mean": 0.976222261624206,
+    "Height ratios min": 0.976092981354183,
+    "Height ratios max": 0.976351541894229,
+    "Y Windows": [],
+    "H Windows": [],
+    "e true": [
+        0.9882590788407545,
+        0.9882590788407545,
+        0.9882590788407545
+    ],
+    "e analytic": [
+        0.9886241542300568,
+        0.9886285498825227,
+        0.9886330479990106
+    ],
+    "e obs": [],
+    "e true obs": []
+}
