@@ -5,10 +5,12 @@ import numpy as np
 from pathlib import Path
 from hybrid_ml_contact_dynamics.experiments.freefall.trajectory_buffer import Trajectory_Buffer
 
-def plot_cdf(x, label):
+def ecdf(x):
+    x = np.asarray(x)
     x = np.sort(x)
-    y = np.linspace(0, 1, len(x))
-    plt.plot(x, y, label=label)
+    n = x.size
+    y = np.arange(1, n + 1)  / n
+    return x, y
 
 plot_runs = False
 
@@ -76,10 +78,7 @@ class freefall_plot:
 
         lims = [ min(err_obs.min(), err_hybrid.min()), max(err_obs.max(), err_hybrid.max()) ]
 
-       # plt.text(0.05 * clip_max, 0.9 * clip_max, f"Improved samples: {improved_frac:.1%}")
         plt.plot([low, clip_max], [low, clip_max], linestyle="--", linewidth=1)
-      #  plt.xlim(lims)
-      #  plt.ylim(lims)
         plt.xscale('log')
         plt.yscale('log')
 
@@ -90,43 +89,71 @@ class freefall_plot:
         plt.xlabel('Baseline Squared Error')
         plt.ylabel('Hybrid Squared Error')
 
-        # plt.text(
-        #     0.02, 0.02, 
-        #     f"Improved samples: {improvement_rate:.1f}%", 
-        #     transform=plt.gca().transAxes,
-        #     va="bottom",
-        #     ha="right",
-        #     fontsize=9
-        #     )
-
         plt.tight_layout()
         plt.savefig("hybrid_ml_contact_dynamics/ml/training/freefall/03-01-2026,03:34:35/baselinevshybriderr")
         plt.close()
 
-
         delta = err_hybrid - err_obs
 
-        plt.figure(figsize=(8, 4))
-        plt.hist(delta, bins=50)
-        plt.axvline(0.0)
+        lo, hi = np.quantile(delta, [0.01, 0.99])
+        pad = 0.05 * (hi - lo)
+        lo -= pad
+        hi += pad
+
+        plt.figure(figsize=(7, 4))
+        neg = delta[delta < 0]
+        pos = delta[delta > 0]
+
+        plt.hist(neg, bins=50, alpha=0.8, label="Improved (Δ<0)")
+        plt.hist(pos, bins=50, alpha=0.6, label="Regressed (Δ>0)")
+        plt.legend(frameon=False)        
+        plt.axvline(0.0, linestyle="--", linewidth=1, alpha=0.8, label="No change")
+        plt.axvline(np.median(delta), linestyle=":", linewidth=1, alpha=0.8,
+            label=f"Median Δ = {np.median(delta):.2e}")
         plt.xlabel("Δ squared error (hybrid − baseline)")
         plt.ylabel("Count")
+
+        plt.xlim(lo, hi)
+        plt.xscale("symlog", linthresh=1e-6)
         plt.title("Per-sample error change")
         plt.tight_layout()
         plt.savefig("hybrid_ml_contact_dynamics/ml/training/freefall/03-01-2026,03:34:35/deltasquarederror")
         plt.close()
 
- 
+        plt.figure(figsize=(6, 4))
 
-        plt.figure(figsize=(7, 5))
-        plot_cdf(err_obs, "Baseline")
-        plot_cdf(err_hybrid, "Hybrid")
+        x_b, y_b = ecdf(err_obs)
+        x_h, y_h = ecdf(err_hybrid)
 
+        eps = 1e-12
+
+        ps = np.linspace(0.0, 1.0, 300)
+
+        qb = np.quantile(err_obs, ps)
+        qh = np.quantile(err_hybrid, ps)
+
+        qb = np.clip(qb, eps, None)
+        qh = np.clip(qh, eps, None)
+
+
+        x_b = np.clip(x_b, eps, None)
+        x_h = np.clip(x_h, eps, None)
+
+        plt.plot(qb, ps, label="Baseline", linewidth=1.5)
+        plt.plot(qh, ps, label="Hybrid", linewidth=1.5)
+
+        plt.xscale('log')
+        plt.ylim(0.0, 1.0)
         plt.xlabel("Squared error")
         plt.ylabel("Cumulative probability")
-        plt.title("Error CDF (test set)")
-        plt.legend()
-        plt.grid(True)
+        plt.title("Error ECDF (test set)")
+        plt.legend(frameon=False)
+        for p in [0.5, 0.9]:
+            vb = max(np.quantile(err_obs, p), eps)
+            vh = max(np.quantile(err_hybrid, p), eps)
+            plt.axvline(vb, linestyle=":", linewidth=1, alpha=0.25)
+            plt.axvline(vh, linestyle=":", linewidth=1, alpha=0.25)
+
         plt.tight_layout()
         plt.savefig("hybrid_ml_contact_dynamics/ml/training/freefall/03-01-2026,03:34:35/cdf")
         plt.close()
