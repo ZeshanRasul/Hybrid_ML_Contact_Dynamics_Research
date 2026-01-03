@@ -1,7 +1,9 @@
 import torch
 import numpy as np
 import copy as copy
-from sklearn.model_selection import train_test_split
+import json
+import datetime
+from pathlib import Path
 
 from hybrid_ml_contact_dynamics.ml.models.model_restitution import RestitutionPredictor
 from hybrid_ml_contact_dynamics.ml.data.build_restitution_dataset import Restitution_Data_Builder
@@ -82,14 +84,14 @@ def main():
 
     print(X_train.shape)
     print(X_test.shape)
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-4)
     model.train()
 
     running_loss = 0
     epochs = 10000
     patience_counter = 0
-    patience = 30
-    alpha = 0
+    patience = 20
+    best_alpha = 0.25
     best_val_loss = float('inf')
     for i in range(epochs):
         optimizer.zero_grad()
@@ -113,27 +115,28 @@ def main():
             model.eval()
             with torch.no_grad():
                 r_hat_val = model(X_val)
+                best_alpha_this = None
                 best_alpha_val_loss = float('inf')
-                for a in [0.05, 0.1, 0.25, 0.5, 1.0]:
+                for a in [0.2, 0.3, 0.45, 0.55, 0.7]:
                     e_hat_val = torch.clamp(e_obs_val + a * r_hat_val, 0, 1)
                     val_loss = ((e_hat_val - e_true_obs_val)**2).mean()
                     if (val_loss < best_alpha_val_loss):
                         best_alpha_val_loss = val_loss
-                        alpha = a
-
-                if val_loss < best_val_loss:
-                    best_val_loss = val_loss
-                    best_state = copy.deepcopy(model)
-                    patience_counter = 0
-                else:
-                    patience_counter += 1
-
-                if patience_counter > patience:
-                    model = best_state
-                    break
+                        best_alpha_this = a
 
             model.train()
 
+            if best_alpha_val_loss < best_val_loss:
+                best_val_loss = best_alpha_val_loss
+                best_alpha = best_alpha_this
+                patience_counter = 0
+            else:
+                patience_counter += 1
+
+            print(f"Epoch {i}: best_val_loss = {best_val_loss:.6e} at alpha = {best_alpha}")
+            
+            if patience_counter > patience:
+                break
 
     e_hat_train = torch.clamp(e_obs_train + r_hat_train, 0, 1)
 
@@ -145,7 +148,7 @@ def main():
     model.eval()
     with torch.no_grad():
         r_hat_test = model(X_test)
-        e_hat_test = torch.clamp(e_obs_test + alpha * r_hat_test, 0, 1)
+        e_hat_test = torch.clamp(e_obs_test + best_alpha * r_hat_test, 0, 1)
     
     clamp_rate = 0
     with torch.no_grad():
@@ -163,3 +166,17 @@ def main():
     r_hat_np_test = r_hat_test.cpu().numpy()
     print(r_true_np_test.mean(), r_true_np_test.std())
     print(r_hat_np_test.mean(), r_hat_np_test.std())
+
+    runtimestamp = datetime.datetime.now().strftime("%d-%m-%Y,%H:%M:%S")
+    
+    data = {
+        'Observed Restitution': e_obs_test.cpu().tolist(),
+        'Ground Truth Restitution': e_true_obs_test.cpu().tolist(),
+        'Predicted Restitution': e_hat_test.cpu().tolist(),
+        'Ground Truth Residual': r_true_np_test.tolist(),
+        'Predicted Residual': r_hat_np_test.tolist()
+    }
+    
+    Path(f"hybrid_ml_contact_dynamics/ml/training/freefall/{runtimestamp}/").mkdir(parents=True, exist_ok=True)
+    with open(f"hybrid_ml_contact_dynamics/ml/training/freefall/{runtimestamp}/model_results.json", 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
