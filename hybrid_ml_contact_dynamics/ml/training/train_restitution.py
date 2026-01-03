@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+import copy as copy
 from sklearn.model_selection import train_test_split
 
 from hybrid_ml_contact_dynamics.ml.models.model_restitution import RestitutionPredictor
@@ -7,6 +8,7 @@ from hybrid_ml_contact_dynamics.ml.data.build_restitution_dataset import Restitu
 
 def main():
     model = RestitutionPredictor()
+    best_state = copy.deepcopy(model)
     data_builder = Restitution_Data_Builder()
     data_builder.save()
     data = data_builder.load()
@@ -62,9 +64,22 @@ def main():
    # X_train, X_test, y_train, y_test = train_test_split(X, r_true, test_size=0.33, random_state=42)
 
     indices = np.random.permutation(2136)
-    training_index, test_index = indices[:1500], indices[1500:]
-    X_train, X_test = X[training_index, :], X[test_index, :]
-    y_train, y_test = r_true[training_index, :], r_true[test_index, :]
+    training_index, val_index, test_index = indices[:1500], indices[1500:1800], indices[1800:]
+    X_train, X_val, X_test = X[training_index], X[val_index], X[test_index]
+    y_train, y_val, y_test = r_true[training_index, :], r_true[val_index], r_true[test_index, :]
+
+    e_obs = torch.from_numpy(np.asarray(e_obs, dtype=np.float32).reshape(-1, 1))
+    e_obs_train, e_obs_val, e_obs_test = e_obs[training_index], e_obs[val_index], e_obs[test_index]
+    print(e_obs_train.shape)
+    print(e_obs_test.shape)
+ #   e_hat = np.asarray(e_hat)
+ #   e_obs = np.asarray(data['e_obs'])
+    e_true_obs = np.asarray(data['e_true_obs'])
+    e_true_obs = torch.from_numpy(np.asarray(e_true_obs, dtype=np.float32).reshape(-1, 1))
+
+    e_true_obs_train, e_true_obs_val, e_true_obs_test = e_true_obs[training_index], e_true_obs[val_index], e_true_obs[test_index]
+
+
     print(X_train.shape)
     print(X_test.shape)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -72,6 +87,10 @@ def main():
 
     running_loss = 0
     epochs = 10000
+    patience_counter = 0
+    patience = 30
+    alpha = 0
+    best_val_loss = float('inf')
     for i in range(epochs):
         optimizer.zero_grad()
 
@@ -90,26 +109,39 @@ def main():
             print(last_loss)
             running_loss = 0
 
-    e_obs = torch.from_numpy(np.asarray(e_obs, dtype=np.float32).reshape(-1, 1))
-    e_obs_train, e_obs_test = e_obs[training_index], e_obs[test_index]
-    print(e_obs_train.shape)
-    print(e_obs_test.shape)
+        if i % 100 == 0:
+            model.eval()
+            with torch.no_grad():
+                r_hat_val = model(X_val)
+                best_alpha_val_loss = float('inf')
+                for a in [0.05, 0.1, 0.25, 0.5, 1.0]:
+                    e_hat_val = torch.clamp(e_obs_val + a * r_hat_val, 0, 1)
+                    val_loss = ((e_hat_val - e_true_obs_val)**2).mean()
+                    if (val_loss < best_alpha_val_loss):
+                        best_alpha_val_loss = val_loss
+                        alpha = a
+
+                if val_loss < best_val_loss:
+                    best_val_loss = val_loss
+                    best_state = copy.deepcopy(model)
+                    patience_counter = 0
+                else:
+                    patience_counter += 1
+
+                if patience_counter > patience:
+                    model = best_state
+                    break
+
+            model.train()
+
+
     e_hat_train = torch.clamp(e_obs_train + r_hat_train, 0, 1)
- #   e_hat = np.asarray(e_hat)
- #   e_obs = np.asarray(data['e_obs'])
-    e_true_obs = np.asarray(data['e_true_obs'])
-    e_true_obs = torch.from_numpy(np.asarray(e_true_obs, dtype=np.float32).reshape(-1, 1))
-
-    e_true_obs_train, e_true_obs_test = e_true_obs[training_index], e_true_obs[test_index]
-
 
     mse_obs_train = torch.mean((e_obs_train - e_true_obs_train)**2)
     print(f"mse observed pre eval is = {mse_obs_train}")
     mse_residual_train = torch.mean((e_hat_train - e_true_obs_train)**2)
     print(f"mse residual pre eval = {mse_residual_train}")
     
-    alpha = 0.25
-
     model.eval()
     with torch.no_grad():
         r_hat_test = model(X_test)
