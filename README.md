@@ -87,16 +87,24 @@ The architecture of the mdeol in terms of layers and activation functions is as 
 - An output layer returning a single scalar value for the residual (the error between the observed value for resitution - e);
 
 The model learns:
-$r=e~trueobs~ - e~obs~$
+$r=e_{trueobs} - e_{obs}$
 
 and using that learning, computes
-$ \hat{e} = clip((e~obs~) + \alpha(r), 0 1)$
+$ \hat{e} = clip((e\_{obs}) + \alpha(r), 0, 1)$
 
 where $\alpha$ is a parameter tuned during model validation.
 
 This formulation of the residual ensures variance is reduced while also mirroring the real-time constraints of numerical methods of traditional physics simulation. It ensures that the ML model performs as a correction, rather than a replacement, of the analytic estimates.
 
 ## Training and Evaluation
+
+The system generates training data from a large number of independents runs of the physics simulation. Current results are found from a run of 1,300 runs, each generating multiple contact events. Each run has a temporal window index jitter random within a given range.
+
+The temporal windows of velocity and position are generated post-run and persisted in order to be loaded for model training at a later time. The training process randomly permutes and splits the dataset in train, validate and test splits.
+
+The model uses a Mean Squared Error (MSE) loss function along with the Adam optimiser. During training, a small discrete sweep is performed over the residual gain parameter $\alpha$ on the validation dataset. This ensures that the optimal value for $\alpha$ is chosen which maintains stability while minimising error.
+
+Performance is assessed primarily by comparing the noisy observed estimator $e_{obs}$ against the hybrid ML estimator $\hat{e}$. A clamp rate is also logged which shows the rate of predictions that fall outside of the physical bounds.
 
 ## Results
 
