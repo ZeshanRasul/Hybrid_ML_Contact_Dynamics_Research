@@ -60,6 +60,12 @@ The simulation is designed in a way to mirror closely that of real-time physics 
 
 ## Noise Model and Temporal Windowing
 
+Central to the goal of measuring real-time discretised physics simulations was the use of temporal windowing of contact events, along with the inclusion of Gaussian noise within the data windows. Real-time simulations such as games and interactive physics applications rarely have perfect information, often relying on short historical state windows.
+
+As such, to ensure relevance, a temporal window of position and velocity data is logged and persisted for each simulation run. Configurable noise is then added to data within the temporal window, as well as index jittering in order to elude greater correctional potential from the learned model.
+
+This technique of using noisy, temporal data allows the model to adapt to noisy data and detect discontinuities and irregularities in the data, with the goal of becoming better at generalising to more complicated data sets.
+
 ## Baseline Estimators
 
 ## Machine Learning Model
