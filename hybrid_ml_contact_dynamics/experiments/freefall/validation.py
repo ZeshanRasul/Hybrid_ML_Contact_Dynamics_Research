@@ -80,26 +80,9 @@ def validate_restitution(run_id, data, circle: Circle, plane: Plane, dt: float, 
                         h_windows.append(h_window)
                         vyidx += 1
                         hidx += 1
-
-                # v_minus = vy[j]
-                # v_plus = vy[j+1]
-
-                # if (-v_minus < eps):
-                #     continue
-
-                # e_hat = v_plus / (-v_minus)
-                # e_hat = np.clip(e_hat, 0.0, 1.0)
-                # e_obs.append(e_hat)
-
-          #  h_window = np.asarray(h_window, dtype=np.float64)
                 
 
- #   impact_indices = np.asarray(impact_indices, dtype=np.int64)
     e_estimates = np.asarray(e_estimates, dtype=np.float64)
-   # e = np.asarray(e, dtype=np.float64)
-  #  vy_windows = np.asarray(vy_windows, dtype=np.array)
-  #  h_windows = np.asarray(h_windows, dtype=np.array)
-  #  e_analytic = np.asarray(e_analytic)
 
     impact_times = t[impact_indices]
     impact_steps = np.diff(impact_indices)

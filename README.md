@@ -68,7 +68,33 @@ This technique of using noisy, temporal data allows the model to adapt to noisy 
 
 ## Baseline Estimators
 
+In order to ensure fair comparisons, all results compare the ML hybrid approach with an observed noisy estimator. Given the use of a noise in the dataset, the observed noisy estimator is the most realistic comparator to the ML approach.
+
+An analytic oracle estimator exists within the system but is not used for final results stage comparisons. A benefit of having an oracle estimator with access to noiseless, ground truth simulation data is the opportunity to understand the upper bound of performance in a state of perfect information. While it is not used for direct performance analysis, it provides a useful insight into difficulty of estimation even when information is noiseless and clean.
+
+The comparisons and analysis, on the other hand, utilise an estimator with access to the observed noisy data. That is, the same temporal windows exposed to the ML model, with the same noise applied. Given the jitter in the temporal window construction, this observed estimator provides a like for like comparison with regards to a purely analytical approach and the ML hybrid approach. As the observed estimator is exposed to noise, its performance degrades with the increase of noise and jitter. As shown in the results section, the use of the ML model is justified by its ability to improve and assist the analytical approach due to its learned predictions.
+
 ## Machine Learning Model
+
+This achieves positive results with a relatively simple and straightforward ML model. The strategy initial proof of concept experiements have taken is to keep the model lightweight and easy to interpret, with a greater focus on effective data collection and system architecture, rather than a complex, difficult to understand model. It is likely as the complexity of experiments increase, so too will the complexity of the model. As such, a simple starting position is felt to be ideal to ensure model complexity doesn't increase too fast.
+
+The model architecture is that of a multi-kayer perceptron (|MLP).It takes as input a 10-dimensional vector consisting of five velocity values and five position values, relating to a window around each contact event.
+
+The architecture of the mdeol in terms of layers and activation functions is as follows:
+
+- An input layer receiving 10 features
+- Two hidden layers taking 36 and 16 features as input
+- An output layer returning a single scalar value for the residual (the error between the observed value for resitution - e);
+
+The model learns:
+$r=e~trueobs~ - e~obs~$
+
+and using that learning, computes
+$ \hat{e} = clip((e~obs~) + \alpha(r), 0 1)$
+
+where $\alpha$ is a parameter tuned during model validation.
+
+This formulation of the residual ensures variance is reduced while also mirroring the real-time constraints of numerical methods of traditional physics simulation. It ensures that the ML model performs as a correction, rather than a replacement, of the analytic estimates.
 
 ## Training and Evaluation
 
