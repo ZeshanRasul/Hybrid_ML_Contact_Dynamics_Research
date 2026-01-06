@@ -108,6 +108,28 @@ Performance is assessed primarily by comparing the noisy observed estimator $e_{
 
 ## Results
 
+The charts below show the results of the model's performance compared against the observed noisy estimator. Together they show that the ML hybrid has great potential to provide corrections above and beyond the observed estimator baseline given its ability to improve sample accuracy.
+
+Figure 4 shows the per-sample error change between the hybrid ML and baseline observed estimator on the test set. Negative values suggest an improvement by hybrid estimators performance relative to the baseline. With a significant proportion improved, shown by Figure 6 to be over 70% of samples, the ML hybrid approach clearly improves performance and overall robustness of the system.
+
+![Per-Sample Error Change](/hybrid_ml_contact_dynamics//docs/images/deltasquarederror.png)
+
+Figure 4: Per-Sample Error Change comparison of Baseline and ML Hybrid Estimators
+
+Figure 5 shows the Empirical Cumulative Distribution Function (ECDF) of the squared error of the baseline and hybrid estimators on the test set. Smaller errors are to the left of the graph and although it is noted that the visuals show only relatively small improvements, the hybrid model shows almost entirely smaller errors than the baseline.
+
+The ECDF of the baseline estimator elucidates an interesting insight in its behaviour. Notably, it shows a pronounced kink due to a concentration of samples with a similar error magnitude of 1e-07. This can be explained due to the noise and jitter applied to the data fed to the baseline. Although this same noise and jitter is fed to the hybrid model, the hybrid model partially smoothes this kink by redistributing probability mass. This observation suggests that the baseline estimator fails to some extent under jitter and noise whereas the hybrid estimator learns corrections which can distinguish the differences in these samples in a way the baseline cannot.
+
+![Empirical Cumulative Distribution Function](/hybrid_ml_contact_dynamics//docs/images/ecdf.png)
+
+Figure 5: Empirical Cumulative Distribution Function of Squared Error for Baseline and ML Hybrid Estimators
+
+Figure 6 compares the per-sample squared error between the ML hybrid estimator and the baseline observed estimator which is fed the same noisy, temporal data as the ML model. The data points below the dashed line represent samples where the ML hybrid estimator improved upon the baseline estimator. It is clear that the ML hybrid estimator improves performance and robustness given the 70.2% of samples on which the ML hybrid estimator outperformed the baseline.
+
+![Per-Sample Error Comparison](/hybrid_ml_contact_dynamics//docs/images/baselinevshybriderr.png)
+
+Figure 6: Per-Sample Error Comparison between Observed Noisy Baseline Estimator and ML Hybrid model
+
 ## Discussion
 
 ## Next Steps
